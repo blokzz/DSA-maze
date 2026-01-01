@@ -1,3 +1,4 @@
+import heapq
 class Stack:
     def __init__(self):
         self.items = []
@@ -38,3 +39,16 @@ class Union_find:
             self.parent[root1] = root2
             return True
         return False
+class PriorityQueue:
+
+    def __init__(self):
+        self.elements = []
+    
+    def is_empty(self):
+        return not self.elements
+    
+    def enqueue(self, item, priority):
+        heapq.heappush(self.elements, (priority, item))
+    
+    def dequeue(self):
+        return heapq.heappop(self.elements)[1]

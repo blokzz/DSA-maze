@@ -1,6 +1,7 @@
 from tkinter import *
 from maze_generators import *
 from draw import *
+import itertools
 from algorithms import *
 from pathfinder import *
 import random
@@ -43,47 +44,96 @@ def run_adventure(algo_type):
     for (er, ec) in GLOBAL_EXITS:
         draw_point(canvas, er, ec, "red")
     
-    # Wybór algorytmu
     if algo_type == "BFS":
         finder = get_path_bfs
+        dist_estimator = get_path_bfs
         color = "yellow"
         algo_name = "BFS (Szerokość)"
     elif algo_type == "A*":
         finder = get_path_astar
-        color = "#5353ec"
-        algo_name = "A* (A-Star Heurystyczny)"
+        dist_estimator = get_path_astar
+        color = "#add8e6"
+        algo_name = "A* (A-Star)"
     else:
         finder = get_path_dfs
+        dist_estimator = get_path_bfs
         color = "orange"
         algo_name = "DFS (Głębokość)"
         
     targets = list(GLOBAL_KANJI.keys())
-    current_pos = GLOBAL_START
-    full_path = []
     
-    total_nodes_visited = 0
+    best_total_order = []
+    min_total_length = float('inf')
     
-    while targets:
-        closest = min(targets, key=lambda t: abs(t[0]-current_pos[0]) + abs(t[1]-current_pos[1]))
+    possible_orders = list(itertools.permutations(targets))
+    
+    exits = GLOBAL_EXITS if GLOBAL_EXITS else []
+    
+    for order in possible_orders:
+        current_sim_pos = GLOBAL_START
+        current_path_len = 0
+        valid_order = True
         
-        segment_path, segment_cost = finder(GLOBAL_MAZE, current_pos, closest, ROWS, COLS)
-        
-        total_nodes_visited += segment_cost
-        
-        if full_path: full_path.extend(segment_path[1:])
-        else: full_path.extend(segment_path)
+        for target in order:
+            path, _ = dist_estimator(GLOBAL_MAZE, current_sim_pos, target, ROWS, COLS)
+            if not path:
+                valid_order = False
+                break
+            current_path_len += len(path)
+            current_sim_pos = target
             
-        current_pos = closest
-        targets.remove(closest)
-        
-    if GLOBAL_EXITS:
-        best_exit = min(GLOBAL_EXITS, key=lambda e: abs(e[0]-current_pos[0]) + abs(e[1]-current_pos[1]))
-        
-        segment_exit, exit_cost = finder(GLOBAL_MAZE, current_pos, best_exit, ROWS, COLS)
-        
-        total_nodes_visited += exit_cost
-        full_path.extend(segment_exit[1:])
+        if not valid_order: continue
+            
+        if exits:
+            best_exit_len = float('inf')
+            for ex in exits:
+                path, _ = dist_estimator(GLOBAL_MAZE, current_sim_pos, ex, ROWS, COLS)
+                if path and len(path) < best_exit_len:
+                    best_exit_len = len(path)
+            
+            if best_exit_len != float('inf'):
+                current_path_len += best_exit_len
+            else:
+                continue
+
+        if current_path_len < min_total_length:
+            min_total_length = current_path_len
+            best_total_order = list(order)
+
+
+    print(f"Najlepsza trasa ma długość: {min_total_length}")
+
+    full_path = []
+    total_nodes_visited = 0
+    current_pos = GLOBAL_START
     
+    for target in best_total_order:
+        segment, cost = finder(GLOBAL_MAZE, current_pos, target, ROWS, COLS)
+        
+        total_nodes_visited += cost
+        if full_path: full_path.extend(segment[1:])
+        else: full_path.extend(segment)
+        current_pos = target
+        
+    if exits:
+        best_exit = None
+        min_len = float('inf')
+        best_segment = []
+        best_cost = 0
+        
+        for ex in exits:
+            path, cost = dist_estimator(GLOBAL_MAZE, current_pos, ex, ROWS, COLS)
+            if path and len(path) < min_len:
+                min_len = len(path)
+                best_exit = ex
+                real_path, real_cost = finder(GLOBAL_MAZE, current_pos, ex, ROWS, COLS)
+                best_segment = real_path
+                best_cost = real_cost
+        
+        if best_segment:
+            full_path.extend(best_segment[1:])
+            total_nodes_visited += best_cost
+
     stats_text = f"Algorytm: {algo_name}\nDługość trasy: {len(full_path)}\nOdwiedzone pola: {total_nodes_visited}"
     STATS_LABEL.config(text=stats_text, fg="blue" if algo_type != "DFS" else "red")
 
@@ -94,14 +144,21 @@ def run_adventure(algo_type):
         global ANIMATION_RUNNING
         if idx >= len(full_path):
             ANIMATION_RUNNING = False
+            if best_exit:
+                draw_point(canvas, best_exit[0], best_exit[1], "purple") 
             return
         
         r, c = full_path[idx]
         draw_path_cell(canvas, r, c, color)
         
-        if (r, c) == GLOBAL_START: draw_point(canvas, r, c, "green")
-        elif (r, c) in GLOBAL_EXITS: draw_point(canvas, r, c, "red")
-        elif (r, c) in GLOBAL_KANJI: draw_point(canvas, r, c, "lime")
+        if (r, c) == GLOBAL_START: 
+            draw_point(canvas, r, c, "green")
+            
+        elif (r, c) in GLOBAL_EXITS: 
+            draw_point(canvas, r, c, "red")
+            
+        elif (r, c) in GLOBAL_KANJI: 
+            draw_point(canvas, r, c, "lime")
         
         idx += 1
         canvas.after(30, animate)
@@ -150,12 +207,12 @@ Button(ctrl, text="DFS", bg="lightblue", command=lambda: generate_new_level("DFS
 Button(ctrl, text="Kruskal", bg="#add8e6", command=lambda: generate_new_level("KRUSKAL")).pack(side="left")
 Button(ctrl, text="Prim", bg="#87cefa", command=lambda: generate_new_level("PRIM")).pack(side="left")
 
-Frame(ctrl, width=10, bg="#eee").pack(side="left") # Odstęp
+Frame(ctrl, width=10, bg="#eee").pack(side="left")
 
 Label(ctrl, text="RUN:", bg="#eee", font=("Arial", 8, "bold")).pack(side="left")
 Button(ctrl, text="DFS", bg="peachpuff", command=lambda: run_adventure("DFS")).pack(side="left")
 Button(ctrl, text="BFS", bg="lightyellow", command=lambda: run_adventure("BFS")).pack(side="left")
-Button(ctrl, text="A* (AI)", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
+Button(ctrl, text="A*", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
 
 generate_new_level("DFS")
 root.mainloop()

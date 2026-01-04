@@ -6,16 +6,6 @@ from algorithms import *
 from pathfinder import *
 import random
 
-def pick_4(kanji_arr):
-    random_four = ()
-    while len(random_four) !=4:
-        r = random.choice(kanji_arr)
-        random_four +=(r ,)
-        kanji_arr.remove(r)
-    return random_four
-kanji_symbols = ["鬱","森","戯","暖","魚","遡","結","灰"]
-kanji_to_collect = pick_4(kanji_symbols)
-
 GLOBAL_MAZE = None
 GLOBAL_START = None
 GLOBAL_EXITS = []
@@ -25,15 +15,17 @@ STATS_LABEL = None
 NODES_VISITED = 0
 MULTI_EXIT_VAR = None 
 
-
-def pick_kanji_randomly(grid, exclude_points, amount=4):
-    all_cells = [(r, c) for r in range(ROWS) for c in range(COLS) if (r, c) not in exclude_points]
+def pick_kanji_randomly(grid, exclude_points, rows, cols, amount=4):
+    all_cells = [(r, c) for r in range(rows) for c in range(cols) if (r, c) not in exclude_points]
     random.shuffle(all_cells)
-    
     symbols = ["鬱","森","戯","暖","魚","遡","結","灰"]
-    chosen_pos = all_cells[:amount]
-    
-    return {pos: symbols[i] for i, pos in enumerate(chosen_pos)}
+    random.shuffle(symbols)
+    random_four = symbols[:amount]
+    if len(all_cells) < amount: amount = len(all_cells)
+    chosen = all_cells[:amount]
+
+    return {pos: random_four[i] for i, pos in enumerate(chosen)}
+
 def run_adventure(algo_type):
     global ANIMATION_RUNNING, NODES_VISITED
     if ANIMATION_RUNNING: return
@@ -139,18 +131,21 @@ def run_adventure(algo_type):
 
     ANIMATION_RUNNING = True
     idx = 0
+    head_obj = None
     def animate():
-        nonlocal idx
+        nonlocal idx, head_obj
         global ANIMATION_RUNNING
         if idx >= len(full_path):
             ANIMATION_RUNNING = False
             if best_exit:
                 draw_point(canvas, best_exit[0], best_exit[1], "purple") 
             return
-        
+        if head_obj: canvas.delete(head_obj)
         r, c = full_path[idx]
         draw_path_cell(canvas, r, c, color)
-        
+        x, y = c*CELL_SIZE+CELL_SIZE//2+OFFSET, r*CELL_SIZE+CELL_SIZE//2+OFFSET
+        R = CELL_SIZE//6
+        head_obj = canvas.create_oval(x-R, y-R, x+R, y+R, fill="blue")
         if (r, c) == GLOBAL_START: 
             draw_point(canvas, r, c, "green")
             
@@ -166,6 +161,17 @@ def run_adventure(algo_type):
 
 def generate_new_level(algorithm):
     global GLOBAL_MAZE, GLOBAL_START, GLOBAL_EXITS, GLOBAL_KANJI
+    global ROWS, COLS
+    try:
+        val = int(spin_size.get())
+    except:
+        val = 15
+    ROWS = val
+    COLS = val
+    
+    new_w = COLS * CELL_SIZE + OFFSET * 2
+    new_h = ROWS * CELL_SIZE + OFFSET * 2
+    canvas.config(width=new_w, height=new_h)
     
     if algorithm == "KRUSKAL": GLOBAL_MAZE = generate_maze_kruskal(ROWS, COLS)
     elif algorithm == "PRIM": GLOBAL_MAZE = generate_maze_prim(ROWS, COLS)
@@ -177,17 +183,18 @@ def generate_new_level(algorithm):
     
     points_to_open = [GLOBAL_START] + GLOBAL_EXITS
     open_walls_for_points(GLOBAL_MAZE, points_to_open, ROWS, COLS)
-    GLOBAL_KANJI = pick_kanji_randomly(GLOBAL_MAZE, points_to_open)
+    GLOBAL_KANJI = pick_kanji_randomly(GLOBAL_MAZE, points_to_open, ROWS, COLS)
     
     draw_maze(canvas, GLOBAL_MAZE)
     draw_kanji(canvas, GLOBAL_KANJI)
     draw_point(canvas, GLOBAL_START[0], GLOBAL_START[1], "green")
     for (er, ec) in GLOBAL_EXITS: draw_point(canvas, er, ec, "red")
     
-    STATS_LABEL.config(text="Wygenerowano nowy labirynt.\nWybierz algorytm szukania.", fg="black")
+    STATS_LABEL.config(text=f"Labirynt {ROWS}x{COLS}. Wybierz algorytm.", fg="black")
+
 
 root = Tk()
-root.title("Projekt asd 2")
+root.title("Projekt Labirynt - ULTRA MAX")
 
 stats_frame = Frame(root, bg="white", pady=5)
 stats_frame.pack(fill="x")
@@ -200,9 +207,17 @@ canvas.pack()
 ctrl = Frame(root, bg="#eee", pady=5)
 ctrl.pack(fill="x")
 
+Label(ctrl, text="SIZE:", bg="#eee", font=("Arial", 8)).pack(side="left")
+SIZE_VAR = IntVar(value=10)
+spin_size = Spinbox(ctrl, from_=5, to=20, width=3, textvariable=SIZE_VAR)
+spin_size.pack(side="left", padx=5)
+
+Frame(ctrl, width=5, bg="#eee").pack(side="left")
+
 Label(ctrl, text="GEN:", bg="#eee", font=("Arial", 8, "bold")).pack(side="left")
 MULTI_EXIT_VAR = BooleanVar()
 Checkbutton(ctrl, text="Multi-Exit", variable=MULTI_EXIT_VAR, bg="#eee").pack(side="left")
+
 Button(ctrl, text="DFS", bg="lightblue", command=lambda: generate_new_level("DFS")).pack(side="left")
 Button(ctrl, text="Kruskal", bg="#add8e6", command=lambda: generate_new_level("KRUSKAL")).pack(side="left")
 Button(ctrl, text="Prim", bg="#87cefa", command=lambda: generate_new_level("PRIM")).pack(side="left")
@@ -212,7 +227,7 @@ Frame(ctrl, width=10, bg="#eee").pack(side="left")
 Label(ctrl, text="RUN:", bg="#eee", font=("Arial", 8, "bold")).pack(side="left")
 Button(ctrl, text="DFS", bg="peachpuff", command=lambda: run_adventure("DFS")).pack(side="left")
 Button(ctrl, text="BFS", bg="lightyellow", command=lambda: run_adventure("BFS")).pack(side="left")
-Button(ctrl, text="A*", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
+Button(ctrl, text="A* (AI)", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
 
 generate_new_level("DFS")
 root.mainloop()

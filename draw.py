@@ -4,7 +4,6 @@ CELL_SIZE = 40
 ROWS = 10
 COLS = 10
 OFFSET = 2
-
 start = (ROWS // 2, COLS // 2)
 end = (0, COLS - 1)
 def random_edge_cell(rows, cols):
@@ -43,19 +42,21 @@ def open_walls_for_points(grid, points, rows, cols):
         elif r == rows - 1: grid[r][c].walls["bottom"] = False
         elif c == 0: grid[r][c].walls["left"] = False
         elif c == cols - 1: grid[r][c].walls["right"] = False
-def draw_cell_walls(canvas, cell):
-    x1, y1 = cell.col * CELL_SIZE + OFFSET, cell.row * CELL_SIZE + OFFSET
-    x2, y2 = x1 + CELL_SIZE, y1 + CELL_SIZE
-    if cell.walls["top"]: canvas.create_line(x1, y1, x2, y1, width=2)
-    if cell.walls["right"]: canvas.create_line(x2, y1, x2, y2, width=2)
-    if cell.walls["bottom"]: canvas.create_line(x1, y2, x2, y2, width=2)
-    if cell.walls["left"]: canvas.create_line(x1, y1, x1, y2, width=2)
-
 def draw_maze(canvas, grid):
     canvas.delete("all")
-    for r in range(ROWS):
-        for c in range(COLS):
-            draw_cell_walls(canvas, grid[r][c])
+    
+    current_rows = len(grid)
+    current_cols = len(grid[0])
+    
+    for r in range(current_rows):
+        for c in range(current_cols):
+            cell = grid[r][c]
+            x1, y1 = c*CELL_SIZE+OFFSET, r*CELL_SIZE+OFFSET
+            x2, y2 = x1+CELL_SIZE, y1+CELL_SIZE
+            if cell.walls["top"]: canvas.create_line(x1,y1,x2,y1, width=2)
+            if cell.walls["right"]: canvas.create_line(x2,y1,x2,y2, width=2)
+            if cell.walls["bottom"]: canvas.create_line(x1,y2,x2,y2, width=2)
+            if cell.walls["left"]: canvas.create_line(x1,y1,x1,y2, width=2)
 
 
 def draw_point(canvas, r, c, color):

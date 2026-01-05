@@ -18,7 +18,7 @@ MULTI_EXIT_VAR = None
 def pick_kanji_randomly(grid, exclude_points, rows, cols, amount=4):
     all_cells = [(r, c) for r in range(rows) for c in range(cols) if (r, c) not in exclude_points]
     random.shuffle(all_cells)
-    symbols = ["鬱","森","戯","暖","魚","遡","結","灰"]
+    symbols = ["鬱","森","戯","暖","魚","遡","結","灰","手","示","紙"]
     random.shuffle(symbols)
     random_four = symbols[:amount]
     if len(all_cells) < amount: amount = len(all_cells)

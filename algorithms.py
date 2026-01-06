@@ -40,19 +40,53 @@ class Union_find:
             return True
         return False
 class PriorityQueue:
-
     def __init__(self):
-        self.elements = []
+        self.heap = MinHeap()
     
     def is_empty(self):
-        return not self.elements
+        return self.heap.is_empty()
     
     def enqueue(self, item, priority):
-        heapq.heappush(self.elements, (priority, item))
+        self.heap.push((priority, item))
     
     def dequeue(self):
-        return heapq.heappop(self.elements)[1]
+        return self.heap.pop()[1]
+class MinHeap:
+    def __init__(self):
+        self.heap = []
 
+    def push(self, item):
+        self.heap.append(item)
+        self._sift_up(len(self.heap) - 1)
 
-# class heap:
-# [1,2,3,4,5,6,7,8]
+    def pop(self):
+        if not self.heap:
+            return None
+        if len(self.heap) == 1:
+            return self.heap.pop()
+        root = self.heap[0]
+        self.heap[0] = self.heap.pop()
+        self._sift_down(0)
+        return root
+
+    def is_empty(self):
+        return len(self.heap) == 0
+
+    def _sift_up(self, idx):
+        parent_idx = (idx - 1) // 2
+        if idx > 0 and self.heap[idx] < self.heap[parent_idx]:
+            self.heap[idx], self.heap[parent_idx] = self.heap[parent_idx], self.heap[idx]
+            self._sift_up(parent_idx)
+
+    def _sift_down(self, idx):
+        smallest = idx
+        left_child = 2 * idx + 1
+        right_child = 2 * idx + 2
+        size = len(self.heap)
+        if left_child < size and self.heap[left_child] < self.heap[smallest]:
+            smallest = left_child
+        if right_child < size and self.heap[right_child] < self.heap[smallest]:
+            smallest = right_child
+        if smallest != idx:
+            self.heap[idx], self.heap[smallest] = self.heap[smallest], self.heap[idx]
+            self._sift_down(smallest)

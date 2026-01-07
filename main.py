@@ -194,11 +194,11 @@ def generate_new_level(algorithm):
 
 
 root = Tk()
-root.title("Projekt Labirynt - ULTRA MAX")
+root.title("Projekt asd 2")
 
 stats_frame = Frame(root, bg="white", pady=5)
 stats_frame.pack(fill="x")
-STATS_LABEL = Label(stats_frame, text="Witaj! Wygeneruj labirynt.", font=("Consolas", 10), bg="white")
+STATS_LABEL = Label(stats_frame, text="", font=("Consolas", 10), bg="white")
 STATS_LABEL.pack()
 
 canvas = Canvas(root, width=COLS*CELL_SIZE+OFFSET*2, height=ROWS*CELL_SIZE+OFFSET*2, bg="white")
@@ -227,7 +227,7 @@ Frame(ctrl, width=10, bg="#eee").pack(side="left")
 Label(ctrl, text="RUN:", bg="#eee", font=("Arial", 8, "bold")).pack(side="left")
 Button(ctrl, text="DFS", bg="peachpuff", command=lambda: run_adventure("DFS")).pack(side="left")
 Button(ctrl, text="BFS", bg="lightyellow", command=lambda: run_adventure("BFS")).pack(side="left")
-Button(ctrl, text="A* (AI)", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
+Button(ctrl, text="A*", bg="#90ee90", font=("Arial", 9, "bold"), command=lambda: run_adventure("A*")).pack(side="left", padx=5)
 
 generate_new_level("DFS")
 root.mainloop()

@@ -93,7 +93,7 @@ def run_adventure(algo_type):
             best_total_order = list(order)
 
 
-    print(f"Najlepsza trasa ma długość: {min_total_length}")
+    print(f"{min_total_length}")
 
     full_path = []
     total_nodes_visited = 0
@@ -168,7 +168,6 @@ def generate_new_level(algorithm):
         val = 15
     ROWS = val
     COLS = val
-    
     new_w = COLS * CELL_SIZE + OFFSET * 2
     new_h = ROWS * CELL_SIZE + OFFSET * 2
     canvas.config(width=new_w, height=new_h)
@@ -190,7 +189,7 @@ def generate_new_level(algorithm):
     draw_point(canvas, GLOBAL_START[0], GLOBAL_START[1], "green")
     for (er, ec) in GLOBAL_EXITS: draw_point(canvas, er, ec, "red")
     
-    STATS_LABEL.config(text=f"Labirynt {ROWS}x{COLS}. Wybierz algorytm.", fg="black")
+    STATS_LABEL.config(text=f"Labirynt {ROWS}x{COLS}. Wybierz algorytm", fg="black")
 
 
 root = Tk()

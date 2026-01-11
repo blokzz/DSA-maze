@@ -189,7 +189,7 @@ def generate_new_level(algorithm):
     draw_point(canvas, GLOBAL_START[0], GLOBAL_START[1], "green")
     for (er, ec) in GLOBAL_EXITS: draw_point(canvas, er, ec, "red")
     
-    STATS_LABEL.config(text=f"Labirynt {ROWS}x{COLS}. Wybierz algorytm", fg="black")
+    STATS_LABEL.config(text=f"Labirynt {ROWS}x{COLS}. Wybierz Algorytm", fg="black")
 
 
 root = Tk()

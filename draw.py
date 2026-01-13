@@ -74,17 +74,3 @@ def draw_kanji(canvas, kanji_map):
     for (r, c), sym in kanji_map.items():
         x, y = c*CELL_SIZE+CELL_SIZE//2+OFFSET, r*CELL_SIZE+CELL_SIZE//2+OFFSET
         canvas.create_text(x, y, text=sym, font=("Arial", 14, "bold"), fill="blue")
-
-def place_kanji(grid, start, end, rows, cols, symbols):
-    free = [
-        (r, c)
-        for r in range(rows)
-        for c in range(cols)
-        if (r, c) not in (start, end)
-    ]
-    random.shuffle(free)
-
-    return {
-        free[i]: symbols[i]
-        for i in range(len(symbols))
-    }

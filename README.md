@@ -5,5 +5,5 @@ Allows to include multi-exit scenario and also containes 4 other targets other t
 Also the path is demonstrated by simple Tkinter animation and statistics for each algorithm to highlight overall performance.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="maze animation" width="600">
+  <img src="assets/demo.gif" alt="maze animation" width="400">
 </p>
